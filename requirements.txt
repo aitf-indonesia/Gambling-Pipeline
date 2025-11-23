@@ -1,0 +1,33 @@
+# Core
+torch==2.7.1+cu118
+torchvision==0.22.1+cu118
+torchaudio==2.7.1+cu118
+numpy==2.0.2
+pandas==2.3.3
+
+# HF Ecosystem
+transformers==4.57.1
+huggingface-hub==0.35.3
+datasets==4.3.0
+accelerate==1.10.1
+safetensors==0.6.2
+
+# Image Processing
+opencv-contrib-python==4.12.0.88
+pillow==11.3.0
+scikit-image==0.24.0
+tqdm==4.67.1
+
+# OCR
+easyocr==1.7.2
+pytesseract==0.3.13
+python-bidi==0.6.7
+
+# FastAPI Backend
+fastapi==0.121.1
+uvicorn==0.38.0
+
+# Utils
+requests==2.32.5
+pyyaml==6.0.3
+python-multipart==0.0.20
