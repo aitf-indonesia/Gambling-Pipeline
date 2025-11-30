@@ -27,3 +27,27 @@ class GamblingClassifier:
             label = "non_gambling"
 
         return label, round(confidence, 4)
+
+    def predict_prob(self, image: Image.Image):
+        """Return probability of gambling class (0.0 - 1.0)"""
+        inputs = self.processor(images=image, return_tensors="pt").to(DEVICE)
+        
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+        
+        logits = outputs.logits
+        probs = torch.softmax(logits, dim=-1)[0]
+        
+        # Find gambling class index
+        id2label = self.model.config.id2label
+        gambling_idx = None
+        for idx, label in id2label.items():
+            if label.lower() == "gambling":
+                gambling_idx = idx
+                break
+        
+        if gambling_idx is None:
+            raise ValueError("Gambling class not found in model")
+        
+        prob_gambling = float(probs[gambling_idx].item())
+        return prob_gambling
