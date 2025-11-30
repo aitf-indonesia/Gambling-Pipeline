@@ -22,7 +22,7 @@ class GamblingClassifier:
         confidence = torch.softmax(logits, dim=-1)[0][predicted_idx].item()
         label = self.model.config.id2label[predicted_idx]
 
-        THRESHOLD = 0.9
+        THRESHOLD = 0.5
         if label == "gambling" and confidence < THRESHOLD:
             label = "non_gambling"
 
