@@ -13,8 +13,10 @@ import os
 import json
 import logging
 import time
+import psutil
 
 from app.pipeline.pipeline import GamblingPipeline
+from app.utils.metrics import MetricsCollector
 
 # Setup logging
 logging.basicConfig(
@@ -24,8 +26,48 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize pipeline 
+# Initialize pipeline and metrics
 pipeline = GamblingPipeline()
+metrics = MetricsCollector()
+
+# Initialize GPU monitoring
+gpu_available = False
+gpu_handle = None
+
+try:
+    import pynvml
+    pynvml.nvmlInit()
+    gpu_handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+    gpu_available = True
+except Exception as e:
+    logger.warning(f"GPU monitoring not available: {e}")
+
+
+def get_resource_info():
+    info = {}
+    
+    # CPU
+    try:
+        info['cpu_percent'] = round(psutil.cpu_percent(interval=0.1), 1)
+    except Exception as e:
+        info['cpu_percent'] = 0
+    
+    # GPU
+    if gpu_available and gpu_handle:
+        try:
+            import pynvml
+            mem_info = pynvml.nvmlDeviceGetMemoryInfo(gpu_handle)
+            util_info = pynvml.nvmlDeviceGetUtilizationRates(gpu_handle)
+            info['gpu_memory_mb'] = int(mem_info.used / 1024 / 1024)
+            info['gpu_utilization'] = util_info.gpu
+        except Exception as e:
+            info['gpu_memory_mb'] = 0
+            info['gpu_utilization'] = 0
+    else:
+        info['gpu_memory_mb'] = 0
+        info['gpu_utilization'] = 0
+    
+    return info
 
 
 def warmup_pipeline(pipeline_instance: GamblingPipeline):
@@ -91,11 +133,14 @@ app.mount("/results", StaticFiles(directory="results"), name="results")
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint untuk monitoring API status"""
     return JSONResponse({
         "status": "ok",
         "timestamp": datetime.now().isoformat()
     })
+
+@app.get("/metrics")
+async def get_metrics():
+    return JSONResponse(metrics.get_stats())
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
@@ -106,6 +151,9 @@ async def predict(file: UploadFile = File(...)):
 
         result = pipeline.process(temp_path)
 
+        # Get resource info
+        resource_info = get_resource_info()
+
         # Logging performance
         perf = result.get("performance", {})
         logger.info(
@@ -114,7 +162,17 @@ async def predict(file: UploadFile = File(...)):
             f"Classifier: {perf.get('classifier_ms', 0)}ms | "
             f"OCR: {perf.get('ocr_ms', 0)}ms | "
             f"Detector: {perf.get('detector_ms', 0)}ms | "
-            f"Viz: {perf.get('visualization_ms', 0)}ms"
+            f"Viz: {perf.get('visualization_ms', 0)}ms | "
+            f"GPU_Mem: {resource_info['gpu_memory_mb']:.0f}MiB | "
+            f"GPU_Util: {resource_info['gpu_utilization']}% | "
+            f"CPU: {resource_info['cpu_percent']}%"
+        )
+
+        # Record metrics
+        metrics.record_request(
+            success=True,
+            status=result['status'],
+            performance=perf
         )
 
         result_id = str(uuid4())
@@ -129,6 +187,7 @@ async def predict(file: UploadFile = File(...)):
 
     except Exception as e:
         logger.error(f"[PREDICT] Error: {str(e)}")
+        metrics.record_request(success=False, status="error", performance={})
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 @app.get("/results")
