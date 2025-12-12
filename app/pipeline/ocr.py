@@ -5,7 +5,6 @@ import re
 from PIL import Image
 from rapidfuzz.distance import Levenshtein
 from app.config.settings import (
-    TARGET_CLASSES_FOR_OCR,
     GAMBLING_KEYWORDS,
     KEYWORD_WEIGHTS,
     SIMILARITY_THRESHOLD,
@@ -17,32 +16,6 @@ class GamblingOCR:
         print("Initializing EasyOCR...")
         self.reader = easyocr.Reader(['id', 'en'], gpu=True)
         print("EasyOCR Ready")
-
-    def extract_text(self, image: Image.Image, detections: list):
-        ocr_results = []
-
-        for det in detections:
-            if det["class"] not in TARGET_CLASSES_FOR_OCR:
-                continue
-
-            x1, y1, x2, y2 = map(int, det["bbox"])
-            cropped = image.crop((x1, y1, x2, y2))
-
-            result = self.reader.readtext(
-                np.array(cropped),
-                detail=0,
-                paragraph=True
-            )
-
-            text = " ".join(result).strip()
-
-            ocr_results.append({
-                "class": det["class"],
-                "bbox": det["bbox"],
-                "ocr_text": text
-            })
-
-        return ocr_results
 
     def preprocess_for_ocr(self, image_path):
         """Preprocessing: resize 2x + CLAHE"""
