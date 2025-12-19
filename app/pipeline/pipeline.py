@@ -3,7 +3,7 @@ from PIL import Image
 from app.pipeline.classifier import GamblingClassifier
 from app.pipeline.detector import GamblingObjectDetector
 from app.pipeline.ocr import GamblingOCR
-from app.pipeline.visualizer import draw_bboxes, save_original_image
+from app.pipeline.visualizer import draw_bboxes_base64, original_image_to_base64
 from app.config.settings import THRESHOLD_FUSION
 
 class GamblingPipeline:
@@ -29,7 +29,7 @@ class GamblingPipeline:
         
         # 2. OCR Heuristic (runs for all images)
         t_start = time.time()
-        prob_ocr, label_ocr, ocr_text = self.ocr.classify_gambling_ocr(image_path)
+        prob_ocr, label_ocr, ocr_text = self.ocr.classify_gambling_ocr(image)
         timings["ocr_ms"] = round((time.time() - t_start) * 1000, 2)
         
         # 3. Fusion
@@ -40,7 +40,7 @@ class GamblingPipeline:
         if label_fusion == "non_gambling":
             # Non-gambling: return early (no RT-DETR, no ocr_text)
             t_start = time.time()
-            visualization_path = save_original_image(image_path)
+            visualization_path = original_image_to_base64(image_path)
             timings["visualization_ms"] = round((time.time() - t_start) * 1000, 2)
             timings["detector_ms"] = 0  # Tidak dijalankan
             timings["total_ms"] = round((time.time() - pipeline_start) * 1000, 2)
@@ -65,7 +65,7 @@ class GamblingPipeline:
         timings["detector_ms"] = round((time.time() - t_start) * 1000, 2)
         
         t_start = time.time()
-        visualization_path = draw_bboxes(image_path, detections)
+        visualization_path = draw_bboxes_base64(image_path, detections)
         timings["visualization_ms"] = round((time.time() - t_start) * 1000, 2)
         
         timings["total_ms"] = round((time.time() - pipeline_start) * 1000, 2)

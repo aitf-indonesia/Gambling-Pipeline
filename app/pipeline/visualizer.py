@@ -1,21 +1,23 @@
 import os
 from uuid import uuid4
 from PIL import Image, ImageDraw, ImageFont
-import shutil
+import base64
+from io import BytesIO
 
-RESULT_DIR = "results/inference"
-os.makedirs(RESULT_DIR, exist_ok=True)
+def pil_to_base64(image, format="WEBP"):
+    buffered = BytesIO()
+    image.save(buffered, format=format, quality=40, method=6)
+    buffered.seek(0)
 
-def save_original_image(image_path):
-    filename = f"{uuid4()}.webp"
-    save_path = os.path.join(RESULT_DIR, filename)
-    
+    img_base64 = base64.b64encode(buffered.read()).decode("utf-8")
+    mime = format.lower()
+    return f"data:image/{mime};base64,{img_base64}"
+
+def original_image_to_base64(image_path):
     image = Image.open(image_path).convert("RGB")
-    image.save(save_path, "WebP", quality=50, method=6)
-    
-    return f"/results/inference/{filename}"
+    return pil_to_base64(image)
 
-def draw_bboxes(image_path, detections):
+def draw_bboxes_base64(image_path, detections):
     image = Image.open(image_path).convert("RGB")
     draw = ImageDraw.Draw(image)
 
@@ -45,8 +47,4 @@ def draw_bboxes(image_path, detections):
         draw.rectangle(text_bbox, fill=bbox_color)
         draw.text((x1, y1 - 22), cls, fill="white", font=font)
 
-    filename = f"{uuid4()}.webp"
-    save_path = os.path.join(RESULT_DIR, filename)
-    image.save(save_path, "WebP", quality=85, method=6)
-
-    return f"/results/inference/{filename}"
+    return pil_to_base64(image)

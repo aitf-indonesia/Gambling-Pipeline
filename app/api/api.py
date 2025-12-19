@@ -125,7 +125,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-os.makedirs("results/inference", exist_ok=True)
 os.makedirs("results/data", exist_ok=True)
 
 app.mount("/results", StaticFiles(directory="results"), name="results")
