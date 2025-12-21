@@ -242,10 +242,6 @@ sudo supervisorctl status prd5_api
 │       └── metrics.py         # Performance metrics collector
 ├── results/
 │   └── data/                  # Stored prediction results (JSON)
-├── simulation/
-│   ├── tim3_simulasi.py       # Batch processing script
-│   ├── index.html            # Web interface (optional)
-│   └── images/               # Test images directory
 ├── requirements.txt          # Python dependencies
 ├── run_server.py            # Server entry point
 ├── setup_prd5.sh           # Production deployment script
