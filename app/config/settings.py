@@ -1,5 +1,5 @@
-MODEL_CLASSIFIER = "aitfindonesia/komdigiub-gambling-classifier-vit"
-MODEL_DETECTOR = "aitfindonesia/komdigiub-gambling-detection-rtdetr-r50"
+MODEL_CLASSIFIER = "aitfindonesia/KomdigiUB-Gambling-Classifier-ViT"
+MODEL_DETECTOR = "aitfindonesia/KomdigiUB-Gambling-Detection-RTDETR-R50"
 
 CONFIDENCE_THRESHOLD_DETECTOR = 0.1
 
