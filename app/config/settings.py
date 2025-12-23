@@ -1,11 +1,11 @@
-MODEL_CLASSIFIER = "aitfindonesia/vit-gambling-finetune"
-MODEL_DETECTOR = "aitfindonesia/rtdetr-r50-gambling-finetune"
+MODEL_CLASSIFIER = "aitfindonesia/komdigiub-gambling-classifier-vit"
+MODEL_DETECTOR = "aitfindonesia/komdigiub-gambling-detection-rtdetr-r50"
 
 CONFIDENCE_THRESHOLD_DETECTOR = 0.1
 
 DEVICE = "cuda"
 
-# OCR Heuristic Constants
+# OCR-based Scorer Constants
 GAMBLING_KEYWORDS = [
     # --- CORE JUDI UMUM ---
     "judi", "judi online", "judi bola", "judi slot", "situs judi",
