@@ -116,6 +116,8 @@ pip install -r requirements.txt
    - Device selection (cuda/cpu)
    - OCR keywords and weights
 
+6. **For deployment on server**, see the [Deployment](#deployment) section
+
 ## Usage
 
 ### Running the Server
@@ -273,7 +275,7 @@ sudo supervisorctl status prd5_api
 │   └── data/                  # Stored prediction results (JSON)
 ├── requirements.txt          # Python dependencies
 ├── run_server.py            # Server entry point
-├── setup_prd5.sh           # Production deployment script
+├── setup_prd5.sh           # Deployment script
 └── README.md              # This file
 ```
 
