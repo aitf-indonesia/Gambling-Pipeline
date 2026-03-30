@@ -2,6 +2,8 @@ import time
 from typing import Dict, List
 from datetime import datetime
 
+from app.config.settings import ENABLE_OCR
+
 
 class MetricsCollector:
     def __init__(self):
@@ -13,10 +15,11 @@ class MetricsCollector:
         self.latencies: List[float] = []
         self.component_times = {
             "classifier": [],
-            "ocr": [],
             "detector": [],
             "visualization": []
         }
+        if ENABLE_OCR:
+            self.component_times["ocr"] = []
         self.start_time = time.time()
         self.last_request_time = None
     
@@ -34,7 +37,8 @@ class MetricsCollector:
             
             self.latencies.append(performance.get("total_ms", 0))
             self.component_times["classifier"].append(performance.get("classifier_ms", 0))
-            self.component_times["ocr"].append(performance.get("ocr_ms", 0))
+            if ENABLE_OCR and "ocr" in self.component_times:
+                self.component_times["ocr"].append(performance.get("ocr_ms", 0))
             self.component_times["detector"].append(performance.get("detector_ms", 0))
             self.component_times["visualization"].append(performance.get("visualization_ms", 0))
         else:

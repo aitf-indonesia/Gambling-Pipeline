@@ -84,12 +84,15 @@ def warmup_pipeline(pipeline_instance: GamblingPipeline):
         dummy_image_det = Image.new("RGB", (640, 640), color=(128, 128, 128))
         _ = pipeline_instance.detector.detect(dummy_image_det)
         logger.info(f"[WARMUP] RT-DETR Detector ready ({(time.time() - t_start) * 1000:.0f}ms)")
-        
-        t_start = time.time()
-        dummy_array = np.zeros((100, 300, 3), dtype=np.uint8)
-        dummy_array.fill(200)
-        _ = pipeline_instance.ocr.reader.readtext(dummy_array, detail=0)
-        logger.info(f"[WARMUP] EasyOCR ready ({(time.time() - t_start) * 1000:.0f}ms)")
+
+        if pipeline_instance.ocr_enabled and pipeline_instance.ocr is not None:
+            t_start = time.time()
+            dummy_array = np.zeros((100, 300, 3), dtype=np.uint8)
+            dummy_array.fill(200)
+            _ = pipeline_instance.ocr.reader.readtext(dummy_array, detail=0)
+            logger.info(f"[WARMUP] EasyOCR ready ({(time.time() - t_start) * 1000:.0f}ms)")
+        else:
+            logger.info("[WARMUP] OCR disabled by configuration")
         
         total_warmup_time = (time.time() - warmup_start) * 1000
         logger.info(f"[WARMUP] All models warmed up ({total_warmup_time:.0f}ms)")
@@ -112,7 +115,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Gambling Detection API",
-    description="Classification → Object Detection → OCR",
+    description="Classification → Fusion Decision → Conditional Object Detection",
     version="2.0.0",
     lifespan=lifespan
 )
@@ -159,7 +162,6 @@ async def predict(file: UploadFile = File(...)):
             f"[PREDICT] Status: {result['status']} | "
             f"Total: {perf.get('total_ms', 0)}ms | "
             f"Classifier: {perf.get('classifier_ms', 0)}ms | "
-            f"OCR: {perf.get('ocr_ms', 0)}ms | "
             f"Detector: {perf.get('detector_ms', 0)}ms | "
             f"Viz: {perf.get('visualization_ms', 0)}ms | "
             f"GPU_Mem: {resource_info['gpu_memory_mb']:.0f}MiB | "

@@ -4,6 +4,7 @@ MODEL_DETECTOR = "aitfindonesia/KomdigiUB-Gambling-Detection-RTDETR-R50"
 CONFIDENCE_THRESHOLD_DETECTOR = 0.1
 
 DEVICE = "cuda"
+ENABLE_OCR = False
 
 # OCR-based Scorer Constants
 GAMBLING_KEYWORDS = [
