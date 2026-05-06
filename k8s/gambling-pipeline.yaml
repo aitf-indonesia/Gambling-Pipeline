@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gambling-pipeline
+  labels:
+    app: gambling-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gambling-pipeline
+  template:
+    metadata:
+      labels:
+        app: gambling-pipeline
+    spec:
+      containers:
+        - name: gambling-pipeline
+          image: anjasmbangun/gambling-pipeline:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: HF_HOME
+              value: /app/.cache/huggingface
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: all
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              value: compute,utility
+          resources:
+            requests:
+              cpu: "1"
+              memory: "32Gi"
+              nvidia.com/gpu: "1"
+            # limits:
+            #   cpu: "2"
+            #   memory: "64Gi"
+            #   nvidia.com/gpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: results-volume
+              mountPath: /app/results
+            - name: hf-cache-volume
+              mountPath: /app/.cache/huggingface
+      volumes:
+        - name: results-volume
+          emptyDir: {}
+        - name: hf-cache-volume
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gambling-pipeline
+  labels:
+    app: gambling-pipeline
+spec:
+  selector:
+    app: gambling-pipeline
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer
