@@ -37,7 +37,6 @@ RUN python -m pip install --upgrade pip \
 
 COPY app ./app
 COPY run_server.py ./run_server.py
-COPY README.md ./README.md
 
 RUN mkdir -p /app/results/data /app/.cache/huggingface
 
